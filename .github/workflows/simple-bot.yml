@@ -1,0 +1,47 @@
+name: 🤖 Simple Bot Example
+
+on:
+  workflow_dispatch:          # 手动触发（推荐）
+    inputs:
+      commit_message:
+        description: '提交信息'
+        required: true
+        default: 'chore: simple-bot 自动更新'
+
+jobs:
+  bot-work:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write         # 允许写入代码
+      pull-requests: write    # 允许创建 PR
+
+    steps:
+      - name: Checkout 代码
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 模拟 AI 修改文件（实际可换成真实逻辑）
+        run: |
+          echo "🤖 Bot 在 $(date '+%Y-%m-%d %H:%M:%S') 自动更新了这个文件" >> bot-log.txt
+          echo "最后运行时间: $(date -u)" > .last-bot-run
+
+      - name: 创建 Pull Request（机器人身份）
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: ${{ github.event.inputs.commit_message }}
+          title: '🤖 Simple Bot 自动更新'
+          body: |
+            ## 🤖 这是机器人自动创建的 PR
+            
+            **提交信息**: ${{ github.event.inputs.commit_message }}
+            
+            这个 PR 由 GitHub Actions 机器人自动生成，演示了如何用机器人身份提交代码。
+            
+            ---
+            *示例来自 Grok 教程*
+          branch: simple-bot/update-${{ github.run_number }}
+          base: main
+          author: simple-bot[bot] <simple-bot[bot]@users.noreply.github.com>
+          committer: simple-bot[bot] <simple-bot[bot]@users.noreply.github.com>
